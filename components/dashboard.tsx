@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getSnapshot, snapshots, tradingDates } from "@/lib/real-data";
 import { DailyStockAnalysis, Rating } from "@/lib/types";
@@ -75,12 +76,12 @@ export default function Dashboard() {
     ["Stocks analyzed", snapshot.stocks.length, 0, "Companies in the current real-data tracking universe"], ["Strong Buy", snapshot.stocks.filter(s => s.rating === "Strong Buy").length, 0, "GARP score of 85 or higher"], ["New entrants", snapshot.stocks.filter(s => s.previousRank === null).length, 0, "New to the ranking versus the previous session"], ["Positive EPS growth", snapshot.stocks.filter(s => s.forecastEpsGrowth > 0).length, 0, "Positive quarterly EPS/revenue growth proxy; not analyst revisions"], ["Below fair value", snapshot.stocks.filter(s => s.upsidePercent > 0).length, 0, "Current price below modeled base fair value"], ["PEG below 1", snapshot.stocks.filter(s => s.peg < 1).length, 0, "PEG below 1 using the latest growth proxy"], ["Average GARP", Math.round(snapshot.stocks.reduce((a,s)=>a+s.garpScore,0)/snapshot.stocks.length), 0, "Average GARP score across the tracking universe"], ["High risk", snapshot.stocks.filter(s => s.riskScore >= 60).length, 0, "Risk Score of 60 or higher"],
   ] as const : [], [snapshot]);
 
-  if (loading) return <div className="dashboard" data-theme={theme}><header className="topbar"><div className="logo">G</div><b>GARP Analytics Taiwan</b></header><div className="page-shell skeleton-grid">{Array.from({length:12},(_,i)=><div className="skeleton" key={i}/>)}</div></div>;
+  if (loading) return <div className="dashboard" data-theme={theme}><header className="topbar"><div className="logo"><Image src="/garp-logo.svg" alt="GARP Analytics Taiwan logo" width={36} height={36} priority /></div><b>GARP Analytics Taiwan</b></header><div className="page-shell skeleton-grid">{Array.from({length:12},(_,i)=><div className="skeleton" key={i}/>)}</div></div>;
   if (!snapshot || !stock) return <div className="state-card"><h1>No analysis snapshot</h1><p>The market may have been closed, or the data snapshot is not ready.</p><button onClick={() => pickDate(latest)}>Return to latest session</button></div>;
   const history=tradingDates.map(d=>snapshots[d].stocks.find(s=>s.ticker===stock.ticker)!).filter(Boolean);
 
   return <div className="dashboard" data-theme={theme}>
-    <header className="topbar"><div className="brand-group"><div className="logo">G</div><div><b>GARP Analytics Taiwan</b><span>Quality Growth Dashboard</span></div></div><nav><a href="#ranking">Daily Ranking</a><a href="#analysis">Stock Analysis</a><a href="#methodology">Data & Methodology</a><button className="theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label="Toggle color mode">{theme === "light" ? "◐ Dark" : "☀ Light"}</button></nav></header>
+    <header className="topbar"><div className="brand-group"><div className="logo"><Image src="/garp-logo.svg" alt="GARP Analytics Taiwan logo" width={36} height={36} priority /></div><div><b>GARP Analytics Taiwan</b><span>Quality Growth Dashboard</span></div></div><nav><a href="#ranking">Daily Ranking</a><a href="#analysis">Stock Analysis</a><a href="#methodology">Data & Methodology</a><button className="theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label="Toggle color mode">{theme === "light" ? "◐ Dark" : "☀ Light"}</button></nav></header>
     <main className="page-shell">
       <section className="dashboard-title"><div><p className="overline">TAIWAN EQUITY INTELLIGENCE</p><h1>Quality Growth Dashboard</h1><p>Daily rankings combining real closing prices, financial statements, fair value, earnings growth, and risk.</p></div><div className="freshness"><span>● REAL DATA</span><p>Snapshot date</p><b>{snapshot.analysisDate} · After close</b></div></section>
       <section className="date-filter"><div><b>Analysis date</b><span>Latest 7 valid trading sessions</span></div>{tradingDates.map(d => <button className={date === d ? "active" : ""} key={d} onClick={() => pickDate(d)}><small>{new Date(`${d}T00:00:00`).toLocaleDateString("en-US", { weekday:"short" })}</small>{shortDate(d)}</button>)}</section>
