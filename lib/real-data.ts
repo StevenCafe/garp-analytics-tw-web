@@ -2,7 +2,7 @@ import { DailySnapshot, DailyStockAnalysis, Rating, StockEvent } from "./types";
 
 // 真實資料快照：價格來自 TWSE；財報來自 TWSE/MOPS 的 FinMind 結構化鏡像。
 // 法人一致預估尚未接入，因此 expectationScore 採中性值，EPS growth 為最新季度實績年增率。
-export const tradingDates = ["2026-07-20", "2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28"];
+export const tradingDates = ["2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29"];
 
 const companies = {
   "6669": { name:"緯穎", industry:"AI 伺服器", eps:[52.7,65.23,82.92,74.21,75.95], revenue25:170655284000, revenue26:276507734000, operatingIncome:17458392000, equity:140164269000, assets:432576398000, cfo:-16154195000, capex:-3871756000, pb:6.13, dividendYield:3.56 },
@@ -18,11 +18,18 @@ const companies = {
 } as const;
 
 const prices: Record<keyof typeof companies, number[]> = {
-  "6669":[4685,5000,5500,5470,5730,5745,5315], "2458":[161.5,165.5,174.5,167,167.5,166,154.5],
-  "3533":[1905,2030,2010,2035,1970,1955,1835], "3665":[1820,2000,2115,2285,2205,2150,2215],
-  "3017":[2135,2320,2265,2440,2380,2400,2240], "2313":[199,210,208,214,201.5,199.5,182],
-  "2308":[1705,1835,1880,1880,1785,1755,1580], "2344":[151,155.5,171,161,154.5,160,144],
-  "2059":[7750,7975,8125,8200,7735,8275,7450], "2383":[4395,4830,5125,5095,4755,4815,4410],
+  "6669":[5000,5500,5470,5730,5745,5315,5135], "2458":[165.5,174.5,167,167.5,166,154.5,149.5],
+  "3533":[2030,2010,2035,1970,1955,1835,1690], "3665":[2000,2115,2285,2205,2150,2215,2090],
+  "3017":[2320,2265,2440,2380,2400,2240,2095], "2313":[210,208,214,201.5,199.5,182,171],
+  "2308":[1835,1880,1880,1785,1755,1580,1495], "2344":[155.5,171,161,154.5,160,144,130],
+  "2059":[7975,8125,8200,7735,8275,7450,7145], "2383":[4830,5125,5095,4755,4815,4410,4100],
+};
+
+// The stored P/B values are anchored to the official 2026-07-17 closes.
+// Keep this reference fixed so retained snapshots do not change when the rolling window advances.
+const pbReferencePrices: Record<keyof typeof companies, number> = {
+  "6669":4620, "2458":164.5, "3533":1865, "3665":1765, "3017":2200,
+  "2313":212, "2308":1740, "2344":155, "2059":7890, "2383":4495,
 };
 
 const clamp = (min:number, max:number, value:number) => Math.max(min, Math.min(max, value));
@@ -33,7 +40,7 @@ function factorScores(ticker:keyof typeof companies, price:number, dateIndex:num
   const c=companies[ticker]; const ttmEps=c.eps.slice(1).reduce((a,b)=>a+b,0); const pe=price/ttmEps;
   const epsGrowth=c.eps[0] > 0 ? (c.eps[4]/c.eps[0]-1)*100 : (c.revenue26/c.revenue25-1)*100;
   const revenueGrowth=(c.revenue26/c.revenue25-1)*100; const growthProxy=clamp(1,60,(epsGrowth+revenueGrowth)/2);
-  const peg=pe/growthProxy; const pb=c.pb*(price/prices[ticker][6]); const roe=pb/pe*100;
+  const peg=pe/growthProxy; const pb=c.pb*(price/pbReferencePrices[ticker]); const roe=pb/pe*100;
   const debtRatio=(c.assets-c.equity)/c.assets*100; const fcf=c.cfo+c.capex;
   const epsPts=epsGrowth>=30?2:epsGrowth>=15?1.6:epsGrowth>=5?1.2:epsGrowth>=0?.7:0;
   const pePts=pe<=15?1.5:pe<=22?1.2:pe<=30?.9:pe<=45?.5:.2;
@@ -59,7 +66,7 @@ function buildSnapshots(): Record<string,DailySnapshot> {
     const stocks=candidates.map(({ticker,price,f},index):DailyStockAnalysis=>{
       const c=companies[ticker]; const base=f.expectedEps*f.basePe; const low=f.expectedEps*f.basePe*.85; const high=f.expectedEps*f.basePe*1.15;
       const garpScore=round(f.total*10,0); const upside=round((base/price-1)*100); const event:StockEvent={date,type:"官方收盤價更新",summary:`TWSE 收盤價 NT$${price.toLocaleString("en-US")}`,direction:dateIndex&&price<prices[ticker][dateIndex-1]?"negative":"neutral",source:"臺灣證券交易所",url:"https://www.twse.com.tw/"};
-      return {analysisDate:date,ticker,stockName:c.name,industry:c.industry,rank:index+1,previousRank:priorRanks?.[ticker]??null,rating:ratingFor(garpScore),currentPrice:price,fairValueLow:round(low),fairValueBase:round(base),fairValueHigh:round(high),upsidePercent:upside,ttmEps:round(f.ttmEps,2),forecastEpsGrowth:round(f.growthProxy),pe:round(f.pe,2),peg:round(f.peg,2),roe:round(f.roe),revenueGrowth:round(f.revenueGrowth),operatingMargin:round(c.operatingIncome/c.revenue26*100),marketCap:round(price*c.equity/(c.pb*(prices[ticker][6]/price))/c.equity*100),garpScore,valuationScore:round(f.valuation,0),growthScore:round(f.growth,0),qualityScore:round(f.quality,0),cashFlowScore:f.fcf>0?85:25,expectationScore:50,riskScore:round(clamp(10,90,f.debtRatio+(f.fcf<0?20:0)),0),reasons:[`最新季 EPS 實績年增 ${round(f.epsGrowth)}%`,`最新季營收年增 ${round(f.revenueGrowth)}%`,`ROE 推算值 ${round(f.roe)}%`,`現價相對基準合理價空間 ${upside}%`],risks:[f.fcf<0?"最新季自由現金流為負":"產業需求可能出現循環波動",f.debtRatio>60?`負債比 ${round(f.debtRatio)}% 偏高`:"估值可能隨市場風險偏好修正","尚未接入法人一致 EPS 預估，Expectation 採中性分"],latestEvents:[event,{date:"2026-03-31",type:"第一季財報",summary:`EPS ${c.eps[4]} 元，營業利益率 ${round(c.operatingIncome/c.revenue26*100)}%`,direction:c.eps[4]>=c.eps[0]?"positive":"negative",source:"公開資訊觀測站／FinMind 結構化資料",url:"https://mops.twse.com.tw/"}],epsHistory:[...c.eps],updatedAt:`${date}T13:30:00+08:00`};
+      return {analysisDate:date,ticker,stockName:c.name,industry:c.industry,rank:index+1,previousRank:priorRanks?.[ticker]??null,rating:ratingFor(garpScore),currentPrice:price,fairValueLow:round(low),fairValueBase:round(base),fairValueHigh:round(high),upsidePercent:upside,ttmEps:round(f.ttmEps,2),forecastEpsGrowth:round(f.growthProxy),pe:round(f.pe,2),peg:round(f.peg,2),roe:round(f.roe),revenueGrowth:round(f.revenueGrowth),operatingMargin:round(c.operatingIncome/c.revenue26*100),marketCap:round(price*c.equity*c.pb/pbReferencePrices[ticker]/1e9),garpScore,valuationScore:round(f.valuation,0),growthScore:round(f.growth,0),qualityScore:round(f.quality,0),cashFlowScore:f.fcf>0?85:25,expectationScore:50,riskScore:round(clamp(10,90,f.debtRatio+(f.fcf<0?20:0)),0),reasons:[`最新季 EPS 實績年增 ${round(f.epsGrowth)}%`,`最新季營收年增 ${round(f.revenueGrowth)}%`,`ROE 推算值 ${round(f.roe)}%`,`現價相對基準合理價空間 ${upside}%`],risks:[f.fcf<0?"最新季自由現金流為負":"產業需求可能出現循環波動",f.debtRatio>60?`負債比 ${round(f.debtRatio)}% 偏高`:"估值可能隨市場風險偏好修正","尚未接入法人一致 EPS 預估，Expectation 採中性分"],latestEvents:[event,{date:"2026-03-31",type:"第一季財報",summary:`EPS ${c.eps[4]} 元，營業利益率 ${round(c.operatingIncome/c.revenue26*100)}%`,direction:c.eps[4]>=c.eps[0]?"positive":"negative",source:"公開資訊觀測站／FinMind 結構化資料",url:"https://mops.twse.com.tw/"}],epsHistory:[...c.eps],updatedAt:`${date}T13:30:00+08:00`};
     });
     priorRanks=Object.fromEntries(stocks.map(s=>[s.ticker,s.rank])); output[date]={analysisDate:date,stocks,isDemo:false,updatedAt:`${date}T13:30:00+08:00`};
   }); return output;
@@ -69,7 +76,7 @@ export const snapshots=buildSnapshots();
 export function getSnapshot(date:string):DailySnapshot|null{return snapshots[date]??null;}
 
 export const dataSources=[
-  {name:"臺灣證券交易所",scope:"2026/7/20–7/28 每日收盤價；最新可得 P/E、P/B、殖利率",url:"https://www.twse.com.tw/"},
+  {name:"臺灣證券交易所",scope:"2026/7/21–7/29 每日收盤價；最新可得 P/E、P/B、殖利率",url:"https://www.twse.com.tw/"},
   {name:"公開資訊觀測站",scope:"2025 Q1–2026 Q1 合併財務報表",url:"https://mops.twse.com.tw/"},
   {name:"FinMind",scope:"TWSE/MOPS 財報結構化鏡像；用於計算 EPS、營收、ROE、現金流",url:"https://finmind.github.io/"},
 ];
