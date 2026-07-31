@@ -2,7 +2,7 @@ import { DailySnapshot, DailyStockAnalysis, Rating, StockEvent } from "./types";
 
 // 真實資料快照：價格來自 TWSE；財報來自 TWSE/MOPS 的 FinMind 結構化鏡像。
 // 法人一致預估尚未接入，因此 expectationScore 採中性值，EPS growth 為最新季度實績年增率。
-export const tradingDates = ["2026-07-22", "2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30"];
+export const tradingDates = ["2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31"];
 
 const companies = {
   "6669": { name:"緯穎", industry:"AI 伺服器", eps:[52.7,65.23,82.92,74.21,75.95], revenue25:170655284000, revenue26:276507734000, operatingIncome:17458392000, equity:140164269000, assets:432576398000, cfo:-16154195000, capex:-3871756000, pb:6.13, dividendYield:3.56 },
@@ -11,18 +11,18 @@ const companies = {
   "3665": { name:"貿聯-KY", industry:"電子零組件", eps:[8.49,10.54,13.51,14.08,11.66], revenue25:16120785000, revenue26:20863649000, operatingIncome:3108361000, equity:46636528000, assets:85600663000, cfo:250919000, capex:-840105000, pb:7.38, dividendYield:.86 },
   "3017": { name:"奇鋐", industry:"散熱", eps:[8.28,10.3,13.67,16.92,20.17], revenue25:23332951000, revenue26:49037946000, operatingIncome:12019030000, equity:51314983000, assets:175993383000, cfo:13673650000, capex:-3656618000, pb:19.12, dividendYield:.95 },
   "2313": { name:"華通", industry:"PCB", eps:[1.1,.7,1.81,1.9,1.26], revenue25:16729875000, revenue26:19548062000, operatingIncome:1938218000, equity:46853886000, assets:93452900000, cfo:1586943000, capex:-1378184000, pb:5.39, dividendYield:1.32 },
-  "2308": { name:"台達電", industry:"電源與能源", eps:[3.94,5.37,7.16,6.67,7.91], revenue25:118919406000, revenue26:159352652000, operatingIncome:28417303000, equity:357259207000, assets:684173975000, cfo:19931192000, capex:-11091192000, pb:15.09, dividendYield:.67 },
+  "2308": { name:"台達電", industry:"電源與能源", eps:[5.37,7.16,6.67,7.91,9.68], revenue25:124035086000, revenue26:183256080000, operatingIncome:30570042000, equity:350224892000, assets:754433332000, cfo:63100603000, capex:-27252368000, pb:12.91, dividendYield:.67 },
   "2344": { name:"華邦電", industry:"記憶體", eps:[-.24,-.29,.65,.76,2.25], revenue25:19992617000, revenue26:38253064000, operatingIncome:12550494000, equity:122893519000, assets:229813688000, cfo:12365781000, capex:-2916222000, pb:5.98, dividendYield:.32 },
   "2059": { name:"川湖", industry:"AI 伺服器", eps:[26.35,6.45,33.55,36.88,36.58], revenue25:3954199000, revenue26:5449725000, operatingIncome:3654349000, equity:31528643000, assets:39510069000, cfo:3076224000, capex:-159025000, pb:23.85, dividendYield:.65 },
-  "2383": { name:"台光電", industry:"PCB", eps:[10.01,10.02,11.19,10.44,14.9], revenue25:21680064000, revenue26:33067261000, operatingIncome:7128470000, equity:47920935000, assets:130976723000, cfo:2703047000, capex:-5663623000, pb:33.59, dividendYield:.56 },
+  "2383": { name:"台光電", industry:"PCB", eps:[10.02,11.19,10.44,14.9,27.55], revenue25:22507694000, revenue26:47275194000, operatingIncome:12733683000, equity:58312077000, assets:158577444000, cfo:5044825000, capex:-10679228000, pb:27.62, dividendYield:.56 },
 } as const;
 
 const prices: Record<keyof typeof companies, number[]> = {
-  "6669":[5500,5470,5730,5745,5315,5135,4900], "2458":[174.5,167,167.5,166,154.5,149.5,148],
-  "3533":[2010,2035,1970,1955,1835,1725,1690], "3665":[2115,2285,2205,2150,2215,2090,1910],
-  "3017":[2265,2440,2380,2400,2240,2095,2110], "2313":[208,214,201.5,199.5,182,171,154],
-  "2308":[1880,1880,1785,1755,1580,1495,1530], "2344":[171,161,154.5,160,144,130,118.5],
-  "2059":[8125,8200,7735,8275,7450,7145,7140], "2383":[5125,5095,4755,4815,4410,4100,4315],
+  "6669":[5470,5730,5745,5315,5135,4900,5390], "2458":[167,167.5,166,154.5,149.5,148,151],
+  "3533":[2035,1970,1955,1835,1725,1690,1855], "3665":[2285,2205,2150,2215,2090,1910,2100],
+  "3017":[2440,2380,2400,2240,2095,2110,2320], "2313":[214,201.5,199.5,182,171,154,169],
+  "2308":[1880,1785,1755,1580,1495,1530,1640], "2344":[161,154.5,160,144,130,118.5,130],
+  "2059":[8200,7735,8275,7450,7145,7140,7850], "2383":[5095,4755,4815,4410,4100,4315,4745],
 };
 
 // The stored P/B values are anchored to the official 2026-07-17 closes.
@@ -32,12 +32,21 @@ const pbReferencePrices: Record<keyof typeof companies, number> = {
   "2313":212, "2308":1740, "2344":155, "2059":7890, "2383":4495,
 };
 
+// Preserve each retained snapshot as it was knowable on that date. The two Q2
+// statements below became available after the July 30 snapshot and therefore
+// affect July 31 only; older snapshots continue to use their Q1 fundamentals.
+function companyForDate(ticker:keyof typeof companies, dateIndex:number) {
+  if(dateIndex<tradingDates.length-1&&ticker==="2308") return { name:"台達電", industry:"電源與能源", eps:[3.94,5.37,7.16,6.67,7.91] as const, revenue25:118919406000, revenue26:159352652000, operatingIncome:28417303000, equity:357259207000, assets:684173975000, cfo:19931192000, capex:-11091192000, pb:15.09, dividendYield:.67 };
+  if(dateIndex<tradingDates.length-1&&ticker==="2383") return { name:"台光電", industry:"PCB", eps:[10.01,10.02,11.19,10.44,14.9] as const, revenue25:21680064000, revenue26:33067261000, operatingIncome:7128470000, equity:47920935000, assets:130976723000, cfo:2703047000, capex:-5663623000, pb:33.59, dividendYield:.56 };
+  return companies[ticker];
+}
+
 const clamp = (min:number, max:number, value:number) => Math.max(min, Math.min(max, value));
 const round = (value:number, digits=1) => Number(value.toFixed(digits));
 const ratingFor = (score:number): Rating => score >= 85 ? "Strong Buy" : score >= 70 ? "Buy" : score >= 55 ? "Watch" : score >= 40 ? "Hold" : "Avoid";
 
 function factorScores(ticker:keyof typeof companies, price:number, dateIndex:number) {
-  const c=companies[ticker]; const ttmEps=c.eps.slice(1).reduce((a,b)=>a+b,0); const pe=price/ttmEps;
+  const c=companyForDate(ticker,dateIndex); const ttmEps=c.eps.slice(1).reduce((a,b)=>a+b,0); const pe=price/ttmEps;
   const epsGrowth=c.eps[0] > 0 ? (c.eps[4]/c.eps[0]-1)*100 : (c.revenue26/c.revenue25-1)*100;
   const revenueGrowth=(c.revenue26/c.revenue25-1)*100; const growthProxy=clamp(1,60,(epsGrowth+revenueGrowth)/2);
   const peg=pe/growthProxy; const pb=c.pb*(price/pbReferencePrices[ticker]); const roe=pb/pe*100;
@@ -64,9 +73,10 @@ function buildSnapshots(): Record<string,DailySnapshot> {
     const candidates=(Object.keys(companies) as (keyof typeof companies)[]).map(ticker=>({ticker, price:prices[ticker][dateIndex], f:factorScores(ticker,prices[ticker][dateIndex],dateIndex)}));
     candidates.sort((a,b)=>b.f.total-a.f.total);
     const stocks=candidates.map(({ticker,price,f},index):DailyStockAnalysis=>{
-      const c=companies[ticker]; const base=f.expectedEps*f.basePe; const low=f.expectedEps*f.basePe*.85; const high=f.expectedEps*f.basePe*1.15;
+      const c=companyForDate(ticker,dateIndex); const base=f.expectedEps*f.basePe; const low=f.expectedEps*f.basePe*.85; const high=f.expectedEps*f.basePe*1.15;
       const garpScore=round(f.total*10,0); const upside=round((base/price-1)*100); const event:StockEvent={date,type:"官方收盤價更新",summary:`TWSE 收盤價 NT$${price.toLocaleString("en-US")}`,direction:dateIndex&&price<prices[ticker][dateIndex-1]?"negative":"neutral",source:"臺灣證券交易所",url:"https://www.twse.com.tw/"};
-      return {analysisDate:date,ticker,stockName:c.name,industry:c.industry,rank:index+1,previousRank:priorRanks?.[ticker]??null,rating:ratingFor(garpScore),currentPrice:price,fairValueLow:round(low),fairValueBase:round(base),fairValueHigh:round(high),upsidePercent:upside,ttmEps:round(f.ttmEps,2),forecastEpsGrowth:round(f.growthProxy),pe:round(f.pe,2),peg:round(f.peg,2),roe:round(f.roe),revenueGrowth:round(f.revenueGrowth),operatingMargin:round(c.operatingIncome/c.revenue26*100),marketCap:round(price*c.equity*c.pb/pbReferencePrices[ticker]/1e9),garpScore,valuationScore:round(f.valuation,0),growthScore:round(f.growth,0),qualityScore:round(f.quality,0),cashFlowScore:f.fcf>0?85:25,expectationScore:50,riskScore:round(clamp(10,90,f.debtRatio+(f.fcf<0?20:0)),0),reasons:[`最新季 EPS 實績年增 ${round(f.epsGrowth)}%`,`最新季營收年增 ${round(f.revenueGrowth)}%`,`ROE 推算值 ${round(f.roe)}%`,`現價相對基準合理價空間 ${upside}%`],risks:[f.fcf<0?"最新季自由現金流為負":"產業需求可能出現循環波動",f.debtRatio>60?`負債比 ${round(f.debtRatio)}% 偏高`:"估值可能隨市場風險偏好修正","尚未接入法人一致 EPS 預估，Expectation 採中性分"],latestEvents:[event,{date:"2026-03-31",type:"第一季財報",summary:`EPS ${c.eps[4]} 元，營業利益率 ${round(c.operatingIncome/c.revenue26*100)}%`,direction:c.eps[4]>=c.eps[0]?"positive":"negative",source:"公開資訊觀測站／FinMind 結構化資料",url:"https://mops.twse.com.tw/"}],epsHistory:[...c.eps],updatedAt:`${date}T13:30:00+08:00`};
+      const hasQ2Results=date==="2026-07-31"&&(ticker==="2308"||ticker==="2383");
+      return {analysisDate:date,ticker,stockName:c.name,industry:c.industry,rank:index+1,previousRank:priorRanks?.[ticker]??null,rating:ratingFor(garpScore),currentPrice:price,fairValueLow:round(low),fairValueBase:round(base),fairValueHigh:round(high),upsidePercent:upside,ttmEps:round(f.ttmEps,2),forecastEpsGrowth:round(f.growthProxy),pe:round(f.pe,2),peg:round(f.peg,2),roe:round(f.roe),revenueGrowth:round(f.revenueGrowth),operatingMargin:round(c.operatingIncome/c.revenue26*100),marketCap:round(price*c.equity*c.pb/pbReferencePrices[ticker]/1e9),garpScore,valuationScore:round(f.valuation,0),growthScore:round(f.growth,0),qualityScore:round(f.quality,0),cashFlowScore:f.fcf>0?85:25,expectationScore:50,riskScore:round(clamp(10,90,f.debtRatio+(f.fcf<0?20:0)),0),reasons:[`最新季 EPS 實績年增 ${round(f.epsGrowth)}%`,`最新季營收年增 ${round(f.revenueGrowth)}%`,`ROE 推算值 ${round(f.roe)}%`,`現價相對基準合理價空間 ${upside}%`],risks:[f.fcf<0?"最新季自由現金流為負":"產業需求可能出現循環波動",f.debtRatio>60?`負債比 ${round(f.debtRatio)}% 偏高`:"估值可能隨市場風險偏好修正","尚未接入法人一致 EPS 預估，Expectation 採中性分"],latestEvents:[event,{date:hasQ2Results?"2026-06-30":"2026-03-31",type:hasQ2Results?"第二季財報":"第一季財報",summary:`EPS ${c.eps[4]} 元，營業利益率 ${round(c.operatingIncome/c.revenue26*100)}%`,direction:c.eps[4]>=c.eps[0]?"positive":"negative",source:"公開資訊觀測站／FinMind 結構化資料",url:"https://mops.twse.com.tw/"}],epsHistory:[...c.eps],updatedAt:`${date}T13:30:00+08:00`};
     });
     priorRanks=Object.fromEntries(stocks.map(s=>[s.ticker,s.rank])); output[date]={analysisDate:date,stocks,isDemo:false,updatedAt:`${date}T13:30:00+08:00`};
   }); return output;
@@ -76,7 +86,7 @@ export const snapshots=buildSnapshots();
 export function getSnapshot(date:string):DailySnapshot|null{return snapshots[date]??null;}
 
 export const dataSources=[
-  {name:"臺灣證券交易所",scope:"2026/7/22–7/30 每日收盤價；最新可得 P/E、P/B、殖利率",url:"https://www.twse.com.tw/"},
-  {name:"公開資訊觀測站",scope:"2025 Q1–2026 Q1 合併財務報表",url:"https://mops.twse.com.tw/"},
+  {name:"臺灣證券交易所",scope:"2026/7/23–7/31 每日收盤價；最新可得 P/E、P/B、殖利率",url:"https://www.twse.com.tw/"},
+  {name:"公開資訊觀測站",scope:"2025 Q1–2026 Q2 合併財務報表；台達電、台光電已更新至 2026 Q2，其餘為最新已完成季度",url:"https://mops.twse.com.tw/"},
   {name:"FinMind",scope:"TWSE/MOPS 財報結構化鏡像；用於計算 EPS、營收、ROE、現金流",url:"https://finmind.github.io/"},
 ];
