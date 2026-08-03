@@ -2,7 +2,7 @@ import { DailySnapshot, DailyStockAnalysis, Rating, StockEvent } from "./types";
 
 // 真實資料快照：價格來自 TWSE；財報來自 TWSE/MOPS 的 FinMind 結構化鏡像。
 // 法人一致預估尚未接入，因此 expectationScore 採中性值，EPS growth 為最新季度實績年增率。
-export const tradingDates = ["2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31"];
+export const tradingDates = ["2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31", "2026-08-03"];
 
 const companies = {
   "6669": { name:"緯穎", industry:"AI 伺服器", eps:[52.7,65.23,82.92,74.21,75.95], revenue25:170655284000, revenue26:276507734000, operatingIncome:17458392000, equity:140164269000, assets:432576398000, cfo:-16154195000, capex:-3871756000, pb:6.13, dividendYield:3.56 },
@@ -18,11 +18,11 @@ const companies = {
 } as const;
 
 const prices: Record<keyof typeof companies, number[]> = {
-  "6669":[5470,5730,5745,5315,5135,4900,5390], "2458":[167,167.5,166,154.5,149.5,148,151],
-  "3533":[2035,1970,1955,1835,1725,1690,1855], "3665":[2285,2205,2150,2215,2090,1910,2100],
-  "3017":[2440,2380,2400,2240,2095,2110,2320], "2313":[214,201.5,199.5,182,171,154,169],
-  "2308":[1880,1785,1755,1580,1495,1530,1640], "2344":[161,154.5,160,144,130,118.5,130],
-  "2059":[8200,7735,8275,7450,7145,7140,7850], "2383":[5095,4755,4815,4410,4100,4315,4745],
+  "6669":[5730,5745,5315,5135,4900,5390,5925], "2458":[167.5,166,154.5,149.5,148,151,156.5],
+  "3533":[1970,1955,1835,1725,1690,1855,2005], "3665":[2205,2150,2215,2090,1910,2100,2095],
+  "3017":[2380,2400,2240,2095,2110,2320,2550], "2313":[201.5,199.5,182,171,154,169,185.5],
+  "2308":[1785,1755,1580,1495,1530,1640,1580], "2344":[154.5,160,144,130,118.5,130,143],
+  "2059":[7735,8275,7450,7145,7140,7850,8635], "2383":[4755,4815,4410,4100,4315,4745,4980],
 };
 
 // The stored P/B values are anchored to the official 2026-07-17 closes.
@@ -36,8 +36,8 @@ const pbReferencePrices: Record<keyof typeof companies, number> = {
 // statements below became available after the July 30 snapshot and therefore
 // affect July 31 only; older snapshots continue to use their Q1 fundamentals.
 function companyForDate(ticker:keyof typeof companies, dateIndex:number) {
-  if(dateIndex<tradingDates.length-1&&ticker==="2308") return { name:"台達電", industry:"電源與能源", eps:[3.94,5.37,7.16,6.67,7.91] as const, revenue25:118919406000, revenue26:159352652000, operatingIncome:28417303000, equity:357259207000, assets:684173975000, cfo:19931192000, capex:-11091192000, pb:15.09, dividendYield:.67 };
-  if(dateIndex<tradingDates.length-1&&ticker==="2383") return { name:"台光電", industry:"PCB", eps:[10.01,10.02,11.19,10.44,14.9] as const, revenue25:21680064000, revenue26:33067261000, operatingIncome:7128470000, equity:47920935000, assets:130976723000, cfo:2703047000, capex:-5663623000, pb:33.59, dividendYield:.56 };
+  if(tradingDates[dateIndex]<"2026-07-31"&&ticker==="2308") return { name:"台達電", industry:"電源與能源", eps:[3.94,5.37,7.16,6.67,7.91] as const, revenue25:118919406000, revenue26:159352652000, operatingIncome:28417303000, equity:357259207000, assets:684173975000, cfo:19931192000, capex:-11091192000, pb:15.09, dividendYield:.67 };
+  if(tradingDates[dateIndex]<"2026-07-31"&&ticker==="2383") return { name:"台光電", industry:"PCB", eps:[10.01,10.02,11.19,10.44,14.9] as const, revenue25:21680064000, revenue26:33067261000, operatingIncome:7128470000, equity:47920935000, assets:130976723000, cfo:2703047000, capex:-5663623000, pb:33.59, dividendYield:.56 };
   return companies[ticker];
 }
 
@@ -75,7 +75,7 @@ function buildSnapshots(): Record<string,DailySnapshot> {
     const stocks=candidates.map(({ticker,price,f},index):DailyStockAnalysis=>{
       const c=companyForDate(ticker,dateIndex); const base=f.expectedEps*f.basePe; const low=f.expectedEps*f.basePe*.85; const high=f.expectedEps*f.basePe*1.15;
       const garpScore=round(f.total*10,0); const upside=round((base/price-1)*100); const event:StockEvent={date,type:"官方收盤價更新",summary:`TWSE 收盤價 NT$${price.toLocaleString("en-US")}`,direction:dateIndex&&price<prices[ticker][dateIndex-1]?"negative":"neutral",source:"臺灣證券交易所",url:"https://www.twse.com.tw/"};
-      const hasQ2Results=date==="2026-07-31"&&(ticker==="2308"||ticker==="2383");
+      const hasQ2Results=date>="2026-07-31"&&(ticker==="2308"||ticker==="2383");
       return {analysisDate:date,ticker,stockName:c.name,industry:c.industry,rank:index+1,previousRank:priorRanks?.[ticker]??null,rating:ratingFor(garpScore),currentPrice:price,fairValueLow:round(low),fairValueBase:round(base),fairValueHigh:round(high),upsidePercent:upside,ttmEps:round(f.ttmEps,2),forecastEpsGrowth:round(f.growthProxy),pe:round(f.pe,2),peg:round(f.peg,2),roe:round(f.roe),revenueGrowth:round(f.revenueGrowth),operatingMargin:round(c.operatingIncome/c.revenue26*100),marketCap:round(price*c.equity*c.pb/pbReferencePrices[ticker]/1e9),garpScore,valuationScore:round(f.valuation,0),growthScore:round(f.growth,0),qualityScore:round(f.quality,0),cashFlowScore:f.fcf>0?85:25,expectationScore:50,riskScore:round(clamp(10,90,f.debtRatio+(f.fcf<0?20:0)),0),reasons:[`最新季 EPS 實績年增 ${round(f.epsGrowth)}%`,`最新季營收年增 ${round(f.revenueGrowth)}%`,`ROE 推算值 ${round(f.roe)}%`,`現價相對基準合理價空間 ${upside}%`],risks:[f.fcf<0?"最新季自由現金流為負":"產業需求可能出現循環波動",f.debtRatio>60?`負債比 ${round(f.debtRatio)}% 偏高`:"估值可能隨市場風險偏好修正","尚未接入法人一致 EPS 預估，Expectation 採中性分"],latestEvents:[event,{date:hasQ2Results?"2026-06-30":"2026-03-31",type:hasQ2Results?"第二季財報":"第一季財報",summary:`EPS ${c.eps[4]} 元，營業利益率 ${round(c.operatingIncome/c.revenue26*100)}%`,direction:c.eps[4]>=c.eps[0]?"positive":"negative",source:"公開資訊觀測站／FinMind 結構化資料",url:"https://mops.twse.com.tw/"}],epsHistory:[...c.eps],updatedAt:`${date}T13:30:00+08:00`};
     });
     priorRanks=Object.fromEntries(stocks.map(s=>[s.ticker,s.rank])); output[date]={analysisDate:date,stocks,isDemo:false,updatedAt:`${date}T13:30:00+08:00`};
@@ -86,7 +86,7 @@ export const snapshots=buildSnapshots();
 export function getSnapshot(date:string):DailySnapshot|null{return snapshots[date]??null;}
 
 export const dataSources=[
-  {name:"臺灣證券交易所",scope:"2026/7/23–7/31 每日收盤價；最新可得 P/E、P/B、殖利率",url:"https://www.twse.com.tw/"},
+  {name:"臺灣證券交易所",scope:"2026/7/24–8/3 每日收盤價；最新可得 P/E、P/B、殖利率",url:"https://www.twse.com.tw/"},
   {name:"公開資訊觀測站",scope:"2025 Q1–2026 Q2 合併財務報表；台達電、台光電已更新至 2026 Q2，其餘為最新已完成季度",url:"https://mops.twse.com.tw/"},
   {name:"FinMind",scope:"TWSE/MOPS 財報結構化鏡像；用於計算 EPS、營收、ROE、現金流",url:"https://finmind.github.io/"},
 ];
