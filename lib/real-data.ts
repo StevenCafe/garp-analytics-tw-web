@@ -2,14 +2,14 @@ import { DailySnapshot, DailyStockAnalysis, Rating, StockEvent } from "./types";
 
 // 真實資料快照：價格來自 TWSE；財報來自 TWSE/MOPS 的 FinMind 結構化鏡像。
 // 法人一致預估尚未接入，因此 expectationScore 採中性值，EPS growth 為最新季度實績年增率。
-export const tradingDates = ["2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-11"];
+export const tradingDates = ["2026-08-07", "2026-08-10", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17"];
 
 const companies = {
   "6669": { name:"緯穎", industry:"AI 伺服器", eps:[65.23,82.92,74.21,75.95,80.43], revenue25:220743500000, revenue26:278152592000, operatingIncome:20217784000, equity:137262713000, assets:556925715000, cfo:-61567715000, capex:-7956426000, pb:6.26, dividendYield:3.56 },
-  "2458": { name:"義隆", industry:"半導體", eps:[1.92,1.24,2.81,2.57,2.46], revenue25:3118884000, revenue26:3224766000, operatingIncome:778771000, equity:9798057000, assets:16710597000, cfo:927887000, capex:-323346000, pb:4.87, dividendYield:4.3 },
-  "3533": { name:"嘉澤", industry:"電子零組件", eps:[20.22,6.69,20.71,22.53,21.37], revenue25:7765494000, revenue26:9327579000, operatingIncome:2708466000, equity:44011578000, assets:54367736000, cfo:2125315000, capex:-1510588000, pb:4.99, dividendYield:1.87 },
+  "2458": { name:"義隆", industry:"半導體", eps:[1.24,2.81,2.57,2.46,3.07], revenue25:3031718000, revenue26:3204859000, operatingIncome:696897000, equity:11511267000, assets:16841099000, cfo:1396514000, capex:-835909000, pb:4.20, dividendYield:4.3 },
+  "3533": { name:"嘉澤", industry:"電子零組件", eps:[6.69,20.71,22.53,21.37,17.68], revenue25:8336437000, revenue26:9568829000, operatingIncome:2102728000, equity:43109002000, assets:58133282000, cfo:4593369000, capex:-3090908000, pb:5.12, dividendYield:1.87 },
   "3665": { name:"貿聯-KY", industry:"電子零組件", eps:[8.49,10.54,13.51,14.08,11.66], revenue25:16120785000, revenue26:20863649000, operatingIncome:3108361000, equity:46636528000, assets:85600663000, cfo:250919000, capex:-840105000, pb:7.38, dividendYield:.86 },
-  "3017": { name:"奇鋐", industry:"散熱", eps:[8.28,10.3,13.67,16.92,20.17], revenue25:23332951000, revenue26:49037946000, operatingIncome:12019030000, equity:51314983000, assets:175993383000, cfo:13673650000, capex:-3656618000, pb:19.12, dividendYield:.95 },
+  "3017": { name:"奇鋐", industry:"散熱", eps:[10.3,13.67,16.92,20.17,24.37], revenue25:29594509000, revenue26:49120964000, operatingIncome:13477619000, equity:62125638000, assets:194577196000, cfo:26290591000, capex:-7111878000, pb:15.65, dividendYield:.95 },
   "2313": { name:"華通", industry:"PCB", eps:[.7,1.81,1.9,1.26,1.24], revenue25:18200497000, revenue26:19991968000, operatingIncome:1951512000, equity:48578428000, assets:100923381000, cfo:834351000, capex:-3662055000, pb:5.20, dividendYield:1.32 },
   "2308": { name:"台達電", industry:"電源與能源", eps:[5.37,7.16,6.67,7.91,9.68], revenue25:124035086000, revenue26:183256080000, operatingIncome:30570042000, equity:350224892000, assets:754433332000, cfo:63100603000, capex:-27252368000, pb:12.91, dividendYield:.67 },
   "2344": { name:"華邦電", industry:"記憶體", eps:[-.29,.65,.76,2.25,5.4], revenue25:21017957000, revenue26:59843265000, operatingIncome:28979336000, equity:173542517000, assets:293034319000, cfo:35672052000, capex:-8088053000, pb:4.02, dividendYield:.32 },
@@ -18,11 +18,11 @@ const companies = {
 } as const;
 
 const prices: Record<keyof typeof companies, number[]> = {
-  "6669":[5925,6205,6175,6265,6100,6010,5930], "2458":[156.5,157.5,160.5,147.5,141.5,145.5,145.5],
-  "3533":[2005,2010,1955,1970,1910,1960,1990], "3665":[2095,2300,2355,2370,2200,2190,2200],
-  "3017":[2550,2600,2730,2940,2785,2765,2760], "2313":[185.5,198.5,218,220.5,208.5,215,211.5],
-  "2308":[1580,1620,1650,1680,1650,1815,1805], "2344":[143,157,169,171,163.5,179.5,178],
-  "2059":[8635,9495,9470,10100,11110,11905,12315], "2383":[4980,5140,5245,5305,5240,5290,5535],
+  "6669":[6100,6010,5930,6025,6070,6435,6620], "2458":[141.5,145.5,145.5,146,145,144.5,144.5],
+  "3533":[1910,1960,1990,2010,1810,1720,1700], "3665":[2200,2190,2200,2155,2205,2200,2135],
+  "3017":[2785,2765,2760,2910,3200,3235,3150], "2313":[208.5,215,211.5,209,212,215.5,211],
+  "2308":[1650,1815,1805,1790,1885,1885,1885], "2344":[163.5,179.5,178,177,177,183.5,181.5],
+  "2059":[11110,11905,12315,12045,12235,12500,13750], "2383":[5240,5290,5535,5730,5690,6165,6350],
 };
 
 // The stored P/B values are anchored to the official 2026-07-17 closes.
@@ -41,6 +41,9 @@ function companyForDate(ticker:keyof typeof companies, dateIndex:number) {
   if(tradingDates[dateIndex]<"2026-08-06"&&ticker==="2059") return { name:"川湖", industry:"AI 伺服器", eps:[26.35,6.45,33.55,36.88,36.58] as const, revenue25:3954199000, revenue26:5449725000, operatingIncome:3654349000, equity:31528643000, assets:39510069000, cfo:3076224000, capex:-159025000, pb:23.85, dividendYield:.65 };
   if(tradingDates[dateIndex]<"2026-08-10"&&ticker==="6669") return { name:"緯穎", industry:"AI 伺服器", eps:[52.7,65.23,82.92,74.21,75.95] as const, revenue25:170655284000, revenue26:276507734000, operatingIncome:17458392000, equity:140164269000, assets:432576398000, cfo:-16154195000, capex:-3871756000, pb:6.13, dividendYield:3.56 };
   if(tradingDates[dateIndex]<"2026-08-10"&&ticker==="2313") return { name:"華通", industry:"PCB", eps:[1.1,.7,1.81,1.9,1.26] as const, revenue25:16729875000, revenue26:19548062000, operatingIncome:1938218000, equity:46853886000, assets:93452900000, cfo:1586943000, capex:-1378184000, pb:5.39, dividendYield:1.32 };
+  if(tradingDates[dateIndex]<"2026-08-13"&&ticker==="3017") return { name:"奇鋐", industry:"散熱", eps:[8.28,10.3,13.67,16.92,20.17] as const, revenue25:23332951000, revenue26:49037946000, operatingIncome:12019030000, equity:51314983000, assets:175993383000, cfo:13673650000, capex:-3656618000, pb:19.12, dividendYield:.95 };
+  if(tradingDates[dateIndex]<"2026-08-14"&&ticker==="2458") return { name:"義隆", industry:"半導體", eps:[1.92,1.24,2.81,2.57,2.46] as const, revenue25:3118884000, revenue26:3224766000, operatingIncome:778771000, equity:9798057000, assets:16710597000, cfo:927887000, capex:-323346000, pb:4.87, dividendYield:4.3 };
+  if(tradingDates[dateIndex]<"2026-08-17"&&ticker==="3533") return { name:"嘉澤", industry:"電子零組件", eps:[20.22,6.69,20.71,22.53,21.37] as const, revenue25:7765494000, revenue26:9327579000, operatingIncome:2708466000, equity:44011578000, assets:54367736000, cfo:2125315000, capex:-1510588000, pb:4.99, dividendYield:1.87 };
   return companies[ticker];
 }
 
@@ -78,7 +81,7 @@ function buildSnapshots(): Record<string,DailySnapshot> {
     const stocks=candidates.map(({ticker,price,f},index):DailyStockAnalysis=>{
       const c=companyForDate(ticker,dateIndex); const base=f.expectedEps*f.basePe; const low=f.expectedEps*f.basePe*.85; const high=f.expectedEps*f.basePe*1.15;
       const garpScore=round(f.total*10,0); const upside=round((base/price-1)*100); const event:StockEvent={date,type:"官方收盤價更新",summary:`TWSE 收盤價 NT$${price.toLocaleString("en-US")}`,direction:dateIndex&&price<prices[ticker][dateIndex-1]?"negative":"neutral",source:"臺灣證券交易所",url:"https://www.twse.com.tw/"};
-      const hasQ2Results=(date>="2026-07-31"&&(ticker==="2308"||ticker==="2383"))||(date>="2026-08-06"&&(ticker==="2344"||ticker==="2059"))||(date>="2026-08-10"&&(ticker==="6669"||ticker==="2313"));
+      const hasQ2Results=(date>="2026-07-31"&&(ticker==="2308"||ticker==="2383"))||(date>="2026-08-06"&&(ticker==="2344"||ticker==="2059"))||(date>="2026-08-10"&&(ticker==="6669"||ticker==="2313"))||(date>="2026-08-13"&&ticker==="3017")||(date>="2026-08-14"&&ticker==="2458")||(date>="2026-08-17"&&ticker==="3533");
       return {analysisDate:date,ticker,stockName:c.name,industry:c.industry,rank:index+1,previousRank:priorRanks?.[ticker]??null,rating:ratingFor(garpScore),currentPrice:price,fairValueLow:round(low),fairValueBase:round(base),fairValueHigh:round(high),upsidePercent:upside,ttmEps:round(f.ttmEps,2),forecastEpsGrowth:round(f.growthProxy),pe:round(f.pe,2),peg:round(f.peg,2),roe:round(f.roe),revenueGrowth:round(f.revenueGrowth),operatingMargin:round(c.operatingIncome/c.revenue26*100),marketCap:round(price*c.equity*c.pb/pbReferencePrices[ticker]/1e9),garpScore,valuationScore:round(f.valuation,0),growthScore:round(f.growth,0),qualityScore:round(f.quality,0),cashFlowScore:f.fcf>0?85:25,expectationScore:50,riskScore:round(clamp(10,90,f.debtRatio+(f.fcf<0?20:0)),0),reasons:[`最新季 EPS 實績年增 ${round(f.epsGrowth)}%`,`最新季營收年增 ${round(f.revenueGrowth)}%`,`ROE 推算值 ${round(f.roe)}%`,`現價相對基準合理價空間 ${upside}%`],risks:[f.fcf<0?"最新季自由現金流為負":"產業需求可能出現循環波動",f.debtRatio>60?`負債比 ${round(f.debtRatio)}% 偏高`:"估值可能隨市場風險偏好修正","尚未接入法人一致 EPS 預估，Expectation 採中性分"],latestEvents:[event,{date:hasQ2Results?"2026-06-30":"2026-03-31",type:hasQ2Results?"第二季財報":"第一季財報",summary:`EPS ${c.eps[4]} 元，營業利益率 ${round(c.operatingIncome/c.revenue26*100)}%`,direction:c.eps[4]>=c.eps[0]?"positive":"negative",source:"公開資訊觀測站／FinMind 結構化資料",url:"https://mops.twse.com.tw/"}],epsHistory:[...c.eps],updatedAt:`${date}T13:30:00+08:00`};
     });
     priorRanks=Object.fromEntries(stocks.map(s=>[s.ticker,s.rank])); output[date]={analysisDate:date,stocks,isDemo:false,updatedAt:`${date}T13:30:00+08:00`};
@@ -89,7 +92,7 @@ export const snapshots=buildSnapshots();
 export function getSnapshot(date:string):DailySnapshot|null{return snapshots[date]??null;}
 
 export const dataSources=[
-  {name:"臺灣證券交易所",scope:"2026/8/3–8/11 每日收盤價；最新可得 P/E、P/B、殖利率",url:"https://www.twse.com.tw/"},
-  {name:"公開資訊觀測站",scope:"2025 Q1–2026 Q2 合併財務報表；台達電、台光電、華邦電、川湖、緯穎、華通已更新至 2026 Q2，其餘為最新已完成季度",url:"https://mops.twse.com.tw/"},
+  {name:"臺灣證券交易所",scope:"2026/8/7–8/17 每日收盤價；最新可得 P/E、P/B、殖利率",url:"https://www.twse.com.tw/"},
+  {name:"公開資訊觀測站",scope:"2025 Q1–2026 Q2 合併財務報表；除貿聯-KY 外，追蹤池其餘公司均已更新至 2026 Q2",url:"https://mops.twse.com.tw/"},
   {name:"FinMind",scope:"TWSE/MOPS 財報結構化鏡像；用於計算 EPS、營收、ROE、現金流",url:"https://finmind.github.io/"},
 ];
